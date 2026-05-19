@@ -1,0 +1,16 @@
+﻿services:
+  postgres:
+    image: postgres:15
+    container_name: zimbra_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: zimbra2026
+      POSTGRES_DB: zimbra_db
+    ports:
+      - "9432:5432"
+    volumes:
+      - zimbra_pgdata:/var/lib/postgresql/data
+
+volumes:
+  zimbra_pgdata:
