@@ -234,3 +234,127 @@ SELECT
     total_revenue
 FROM performance_reports
 ORDER BY period_start;
+
+-- ============================================================
+-- T8: Register seller with duplicate email validation (HU-01)
+-- ============================================================
+BEGIN;
+
+SAVEPOINT sp_before_seller;
+
+INSERT INTO sellers (full_name, email, phone, active)
+VALUES ('Laura Mendez', 'laura.mendez@zimbra.com', '3001234567', 1);
+
+SAVEPOINT sp_seller_created;
+
+-- Simulate duplicate email error and rollback
+-- This would fail due to UNIQUE constraint on email
+-- ROLLBACK TO SAVEPOINT sp_before_seller;
+
+COMMIT;
+
+-- ============================================================
+-- T9: Logical deactivation of seller (HU-01)
+-- Marks seller as inactive instead of physical delete
+-- ============================================================
+BEGIN;
+
+SAVEPOINT sp_before_deactivate;
+
+UPDATE sellers
+SET active = 0
+WHERE email = 'laura.mendez@zimbra.com';
+
+SAVEPOINT sp_seller_deactivated;
+
+COMMIT;
+
+-- ============================================================
+-- T10: Generate sales alert for high-score lead (HU-06)
+-- Creates alert and updates status through its lifecycle
+-- ============================================================
+BEGIN;
+
+SAVEPOINT sp_before_alert;
+
+INSERT INTO sales_alerts (interaction_id, seller_id, alert_type, status)
+VALUES (
+    (SELECT interaction_id FROM marketing_interactions WHERE score >= 80 LIMIT 1),
+    (SELECT seller_id FROM sellers WHERE active = 1 LIMIT 1),
+    'high_lead_score',
+    'pending'
+);
+
+SAVEPOINT sp_alert_inserted;
+
+-- Seller opens alert: status changes to in_management
+UPDATE sales_alerts
+SET status = 'in_management'
+WHERE alert_id = (SELECT MAX(alert_id) FROM sales_alerts);
+
+SAVEPOINT sp_alert_in_management;
+
+COMMIT;
+
+-- ============================================================
+-- T11: ROLLBACK simulation - alert escalation timeout (HU-06)
+-- Tries to escalate alert but rolls back on error
+-- ============================================================
+BEGIN;
+
+SAVEPOINT sp_before_escalation;
+
+UPDATE sales_alerts
+SET status = 'escalated'
+WHERE status = 'pending'
+AND alert_date < NOW() - INTERVAL '24 hours';
+
+SAVEPOINT sp_escalated;
+
+-- Simulate error: invalid seller assignment
+ROLLBACK TO SAVEPOINT sp_before_escalation;
+
+ROLLBACK;
+
+-- ============================================================
+-- T12: Register commercial follow-up linked to alert (HU-07)
+-- ============================================================
+BEGIN;
+
+SAVEPOINT sp_before_followup;
+
+INSERT INTO follow_ups (client_id, seller_id, alert_id, contact_type, result, notes, next_contact)
+VALUES (
+    (SELECT client_id FROM clients WHERE assigned_seller_id IS NOT NULL LIMIT 1),
+    (SELECT seller_id FROM sellers WHERE active = 1 LIMIT 1),
+    (SELECT alert_id FROM sales_alerts WHERE status = 'in_management' LIMIT 1),
+    'call',
+    'interested',
+    'Client requested product demo for next week',
+    '2026-06-01'
+);
+
+SAVEPOINT sp_followup_created;
+
+-- Alert resolved after follow-up registered
+UPDATE sales_alerts
+SET status = 'resolved'
+WHERE alert_id = (SELECT alert_id FROM follow_ups ORDER BY followup_id DESC LIMIT 1);
+
+SAVEPOINT sp_alert_resolved;
+
+COMMIT;
+
+-- ============================================================
+-- T13: ROLLBACK simulation - follow-up with invalid client (HU-07)
+-- ============================================================
+BEGIN;
+
+SAVEPOINT sp_before_invalid_followup;
+
+INSERT INTO follow_ups (client_id, seller_id, alert_id, contact_type, result, notes, next_contact)
+VALUES (9999, 1, NULL, 'email', 'no_answer', 'Invalid client test', '2026-06-10');
+
+ROLLBACK TO SAVEPOINT sp_before_invalid_followup;
+
+ROLLBACK;
