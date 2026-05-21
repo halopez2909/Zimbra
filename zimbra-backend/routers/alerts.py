@@ -1,5 +1,6 @@
-﻿from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 from typing import List
 
 from database import get_db
@@ -7,6 +8,13 @@ from models.alert import Alert
 from schemas.alert import AlertOut, AlertStatusUpdate
 
 router = APIRouter(prefix="/alerts", tags=["Alerts"])
+
+# HT-S3-11 (HU-06) - escalate overdue pending alerts via fn_escalate_alerts()
+@router.post("/escalate")
+def escalate_alerts(db: Session = Depends(get_db)):
+    escalated = db.execute(text("SELECT fn_escalate_alerts()")).scalar()
+    db.commit()
+    return {"escalated": escalated}
 
 @router.get("/seller/{seller_id}", response_model=List[AlertOut])
 def get_alerts_by_seller(seller_id: int, db: Session = Depends(get_db)):
@@ -17,7 +25,7 @@ def get_alerts_by_seller(seller_id: int, db: Session = Depends(get_db)):
 
 @router.patch("/{alert_id}/status", response_model=AlertOut)
 def update_alert_status(alert_id: int, data: AlertStatusUpdate, db: Session = Depends(get_db)):
-    valid_statuses = ["pending", "in_management", "resolved", "escalated"]
+    valid_statuses = ["pending", "in_management", "attended", "resolved", "escalated"]
     if data.status not in valid_statuses:
         raise HTTPException(status_code=400, detail=f"Status must be one of: {valid_statuses}")
     alert = db.query(Alert).filter(Alert.alert_id == alert_id).first()

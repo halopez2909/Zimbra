@@ -1,7 +1,10 @@
-﻿import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom';
 import ProductsPage from './pages/ProductsPage';
 import InteractionsPage from './pages/InteractionsPage';
 import ProposalsPage from './pages/ProposalsPage';
+import SellersPage from './pages/SellersPage';
+import AlertsPage from './pages/AlertsPage';
+import FollowUpsPage from './pages/FollowUpsPage';
 
 const navStyle = { display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', borderRadius: '6px', textDecoration: 'none', fontSize: '14px', color: '#fff', fontWeight: '500' };
 const activeStyle = { background: 'rgba(255,255,255,0.2)' };
@@ -17,18 +20,27 @@ export default function App() {
           </div>
           <nav style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <NavLink to="/products" style={({ isActive }) => ({ ...navStyle, ...(isActive ? activeStyle : {}) })}>
-              📦 Products
+              Products
             </NavLink>
             <NavLink to="/interactions" style={({ isActive }) => ({ ...navStyle, ...(isActive ? activeStyle : {}) })}>
-              🔗 Interactions
+              Interactions
             </NavLink>
             <NavLink to="/proposals" style={({ isActive }) => ({ ...navStyle, ...(isActive ? activeStyle : {}) })}>
-              📋 Proposals
+              Proposals
+            </NavLink>
+            <NavLink to="/sellers" style={({ isActive }) => ({ ...navStyle, ...(isActive ? activeStyle : {}) })}>
+              Sellers
+            </NavLink>
+            <NavLink to="/alerts" style={({ isActive }) => ({ ...navStyle, ...(isActive ? activeStyle : {}) })}>
+              Alerts
+            </NavLink>
+            <NavLink to="/followups" style={({ isActive }) => ({ ...navStyle, ...(isActive ? activeStyle : {}) })}>
+              Follow-ups
             </NavLink>
           </nav>
           <div style={{ marginTop: 'auto', padding: '12px 4px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-            <p style={{ color: '#AABBEE', fontSize: '11px', margin: 0 }}>Andres Bautista</p>
-            <p style={{ color: '#7788AA', fontSize: '10px', margin: '2px 0 0' }}>HU-03 · HU-05 · HU-08 · HU-09</p>
+            <p style={{ color: '#AABBEE', fontSize: '11px', margin: 0 }}>Zimbra Team - Uniminuto 2026</p>
+            <p style={{ color: '#7788AA', fontSize: '10px', margin: '2px 0 0' }}>Sellers / Alerts / Follow-ups by Jenn Olaya</p>
           </div>
         </div>
 
@@ -37,13 +49,16 @@ export default function App() {
             <Route path="/" element={
               <div style={{ padding: '40px', textAlign: 'center' }}>
                 <h1 style={{ color: '#1F3864' }}>Zimbra Transactional System</h1>
-                <p style={{ color: '#666' }}>Session 3 — Marketing Engine and Sales Pipeline</p>
+                <p style={{ color: '#666' }}>Session 3 - Marketing Engine and Sales Pipeline</p>
                 <p style={{ color: '#888', fontSize: '14px' }}>Select a module from the sidebar to get started.</p>
               </div>
             } />
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/interactions" element={<InteractionsPage />} />
             <Route path="/proposals" element={<ProposalsPage />} />
+            <Route path="/sellers" element={<SellersPage />} />
+            <Route path="/alerts" element={<AlertsPage />} />
+            <Route path="/followups" element={<FollowUpsPage />} />
           </Routes>
         </div>
       </div>
