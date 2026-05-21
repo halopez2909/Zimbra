@@ -1,5 +1,6 @@
 ﻿from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 from database import get_db
 from models.campaign import Campaign
 from models.interaction import Interaction
@@ -16,6 +17,31 @@ def get_campaigns(status: Optional[str] = None, objective: Optional[str] = None,
     if objective:
         query = query.filter(Campaign.objective == objective)
     return query.all()
+
+@router.get("/{id}/conversion-rate")
+def get_conversion_rate(id: int, db: Session = Depends(get_db)):
+    c = db.query(Campaign).filter(Campaign.campaign_id == id).first()
+    if not c:
+        raise HTTPException(status_code=404, detail="Campaign not found")
+    rate = db.execute(
+        text("SELECT fn_campaign_conversion_rate(:campaign_id)"),
+        {"campaign_id": id}
+    ).scalar()
+    return {"campaign_id": id, "campaign_name": c.campaign_name, "conversion_rate": float(rate or 0)}
+
+@router.get("/{id}/interactions")
+def get_campaign_interactions(id: int, db: Session = Depends(get_db)):
+    c = db.query(Campaign).filter(Campaign.campaign_id == id).first()
+    if not c:
+        raise HTTPException(status_code=404, detail="Campaign not found")
+    interactions = db.query(Interaction).filter(Interaction.campaign_id == id).all()
+    return {
+        "campaign_id": id,
+        "campaign_name": c.campaign_name,
+        "total_interactions": len(interactions),
+        "converted": sum(1 for i in interactions if i.converted == 1),
+        "interactions": interactions
+    }
 
 @router.get("/{id}", response_model=CampaignOut)
 def get_campaign(id: int, db: Session = Depends(get_db)):
@@ -52,27 +78,13 @@ def update_campaign_status(id: int, data: CampaignStatusUpdate, db: Session = De
     c = db.query(Campaign).filter(Campaign.campaign_id == id).first()
     if not c:
         raise HTTPException(status_code=404, detail="Campaign not found")
-    valid_statuses = ["planned", "active", "finished", "cancelled"]
+    valid_statuses = ["planned", "active", "finished", "cancelled", "high_demand"]
     if data.status not in valid_statuses:
         raise HTTPException(status_code=400, detail=f"Invalid status. Must be one of: {valid_statuses}")
     c.status = data.status
     db.commit()
     db.refresh(c)
     return c
-
-@router.get("/{id}/interactions")
-def get_campaign_interactions(id: int, db: Session = Depends(get_db)):
-    c = db.query(Campaign).filter(Campaign.campaign_id == id).first()
-    if not c:
-        raise HTTPException(status_code=404, detail="Campaign not found")
-    interactions = db.query(Interaction).filter(Interaction.campaign_id == id).all()
-    return {
-        "campaign_id": id,
-        "campaign_name": c.campaign_name,
-        "total_interactions": len(interactions),
-        "converted": sum(1 for i in interactions if i.converted == 1),
-        "interactions": interactions
-    }
 
 @router.delete("/{id}", status_code=204)
 def delete_campaign(id: int, db: Session = Depends(get_db)):

@@ -1,0 +1,8 @@
+﻿f = open('src/pages/ProductsPage.tsx', 'r', encoding='utf-8')
+content = f.read()
+f.close()
+content = content.replace('p.base_price.toLocaleString()', 'Number(p.base_price).toLocaleString()')
+f = open('src/pages/ProductsPage.tsx', 'w', encoding='utf-8')
+f.write(content)
+f.close()
+print('OK - replacements:', content.count('Number(p.base_price)'))

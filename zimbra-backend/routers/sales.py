@@ -1,5 +1,6 @@
 ﻿from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 from database import get_db
 from models.sale import Sale
 from models.proposal import Proposal
@@ -8,6 +9,19 @@ from schemas.sale import SaleCreate, SaleOut
 from typing import List
 
 router = APIRouter(prefix="/sales", tags=["Sales"])
+
+@router.get("/pipeline")
+def get_pipeline(db: Session = Depends(get_db)):
+    rows = db.execute(text("SELECT * FROM fn_sales_pipeline()")).fetchall()
+    return [
+        {
+            "status": row[0],
+            "total_proposals": row[1],
+            "total_amount": float(row[2]),
+            "percentage": float(row[3])
+        }
+        for row in rows
+    ]
 
 @router.get("/", response_model=List[SaleOut])
 def get_sales(db: Session = Depends(get_db)):

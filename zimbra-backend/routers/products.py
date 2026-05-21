@@ -1,5 +1,6 @@
 ﻿from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 from database import get_db
 from models.product import Product
 from schemas.product import ProductCreate, ProductOut
@@ -10,6 +11,16 @@ router = APIRouter(prefix="/products", tags=["Products"])
 @router.get("/", response_model=List[ProductOut])
 def get_products(db: Session = Depends(get_db)):
     return db.query(Product).all()
+
+@router.get("/{id}/calculate")
+def calculate_amount(id: int, num_users: int, db: Session = Depends(get_db)):
+    result = db.execute(
+        text("SELECT fn_calculate_proposal_amount(:product_id, :num_users)"),
+        {"product_id": id, "num_users": num_users}
+    ).scalar()
+    if result is None:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return {"product_id": id, "num_users": num_users, "calculated_amount": float(result)}
 
 @router.get("/{id}", response_model=ProductOut)
 def get_product(id: int, db: Session = Depends(get_db)):
