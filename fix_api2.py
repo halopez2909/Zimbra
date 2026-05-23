@@ -1,4 +1,6 @@
-const BASE_URL = "http://localhost:9000";
+﻿f = open('zimbra-frontend/src/api/api.ts', 'w', encoding='utf-8')
+B = 'http://localhost:9000'
+f.write('''const BASE_URL = "''' + B + '''";
 
 // Products - Andres
 export const getProducts = async () => {
@@ -128,13 +130,16 @@ export const escalateAlerts = async () => {
 };
 
 // Followups - Jenn
-export const getFollowUpsByClient = async (clientId: number) => {
+export const getFollowupsByClient = async (clientId: number) => {
   const res = await fetch(BASE_URL + "/followups/client/" + clientId);
   if (!res.ok) throw new Error("Failed to fetch followups");
   return res.json();
 };
-export const createFollowUp = async (data: object) => {
+export const createFollowup = async (data: object) => {
   const res = await fetch(BASE_URL + "/followups/", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
   if (!res.ok) throw new Error("Failed to create followup");
   return res.json();
 };
+''')
+f.close()
+print('OK')
