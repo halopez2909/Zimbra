@@ -9,6 +9,7 @@ import models.proposal, models.sale, models.report
 from routers import products, interactions, proposals, sales
 from routers import clients, campaigns
 from routers import sellers, alerts, followups
+from routers import reports
 
 Base.metadata.create_all(bind=engine)
 
@@ -35,6 +36,7 @@ app.include_router(campaigns.router)
 app.include_router(sellers.router)
 app.include_router(alerts.router)
 app.include_router(followups.router)
+app.include_router(reports.router)
 
 @app.get("/")
 def root():

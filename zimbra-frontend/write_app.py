@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route, NavLink } from "react-router-dom";
+﻿f = open('src/App.tsx', 'w', encoding='utf-8')
+f.write('''import { BrowserRouter, Routes, Route, NavLink } from "react-router-dom";
 import ProductsPage from "./pages/ProductsPage";
 import InteractionsPage from "./pages/InteractionsPage";
 import ProposalsPage from "./pages/ProposalsPage";
@@ -60,3 +61,6 @@ export default function App() {
     </BrowserRouter>
   );
 }
+''')
+f.close()
+print('OK')

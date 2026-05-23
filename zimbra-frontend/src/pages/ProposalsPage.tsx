@@ -52,8 +52,8 @@ export default function ProposalsPage() {
 
   return (
     <div style={{ padding: '24px' }}>
-      <h1 style={{ color: '#1F3864', marginBottom: '4px' }}>Proposals</h1>
-      <p style={{ color: '#666', marginBottom: '24px' }}>Sales pipeline management</p>
+      <h1 style={{ color: '#1F3864', marginBottom: '12px' }}>Proposals</h1>
+      <p style={{ color: '#666', marginTop: '12px', marginBottom: '24px' }}>Sales pipeline management</p>
 
       {error && <div style={{ background: '#FCE4D6', color: '#922B21', padding: '10px', borderRadius: '6px', marginBottom: '16px' }}>{error}</div>}
       {success && <div style={{ background: '#E2EFDA', color: '#1E8449', padding: '10px', borderRadius: '6px', marginBottom: '16px' }}>{success}</div>}

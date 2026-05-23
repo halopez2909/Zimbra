@@ -37,8 +37,8 @@ export default function InteractionsPage() {
 
   return (
     <div style={{ padding: '24px' }}>
-      <h1 style={{ color: '#1F3864', marginBottom: '4px' }}>Interactions</h1>
-      <p style={{ color: '#666', marginBottom: '24px' }}>Marketing lead scoring</p>
+      <h1 style={{ color: '#1F3864', marginBottom: '12px' }}>Interactions</h1>
+      <p style={{ color: '#666', marginTop: '12px', marginBottom: '24px' }}>Marketing lead scoring</p>
 
       {error && <div style={{ background: '#FCE4D6', color: '#922B21', padding: '10px', borderRadius: '6px', marginBottom: '16px' }}>{error}</div>}
       {success && <div style={{ background: '#E2EFDA', color: '#1E8449', padding: '10px', borderRadius: '6px', marginBottom: '8px' }}>{success}</div>}

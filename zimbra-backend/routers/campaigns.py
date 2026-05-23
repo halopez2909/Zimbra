@@ -18,6 +18,24 @@ def get_campaigns(status: Optional[str] = None, objective: Optional[str] = None,
         query = query.filter(Campaign.objective == objective)
     return query.all()
 
+@router.get("/{id}/stats")
+def get_campaign_stats(id: int, db: Session = Depends(get_db)):
+    c = db.query(Campaign).filter(Campaign.campaign_id == id).first()
+    if not c:
+        raise HTTPException(status_code=404, detail="Campaign not found")
+    row = db.execute(
+        text("SELECT * FROM fn_campaign_stats(:campaign_id)"),
+        {"campaign_id": id}
+    ).fetchone()
+    return {
+        "campaign_id": id,
+        "campaign_name": c.campaign_name,
+        "total_interactions": row[0] if row else 0,
+        "total_converted": row[1] if row else 0,
+        "conversion_rate": float(row[2]) if row and row[2] else 0.0,
+        "cost_per_conversion": float(row[3]) if row and row[3] else 0.0
+    }
+
 @router.get("/{id}/conversion-rate")
 def get_conversion_rate(id: int, db: Session = Depends(get_db)):
     c = db.query(Campaign).filter(Campaign.campaign_id == id).first()
