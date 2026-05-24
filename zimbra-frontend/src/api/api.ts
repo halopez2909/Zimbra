@@ -138,3 +138,19 @@ export const createFollowUp = async (data: object) => {
   if (!res.ok) throw new Error("Failed to create followup");
   return res.json();
 };
+
+// ============================================================
+// Session 4 - Jenn Olaya - Views (ranking and global pending alerts)
+// ============================================================
+
+export const fetchSellerRanking = async () => {
+  const res = await fetch(BASE_URL + "/views/sellers");
+  if (!res.ok) throw new Error("Failed to fetch seller ranking");
+  return res.json();
+};
+
+export const fetchPendingAlerts = async () => {
+  const res = await fetch(BASE_URL + "/views/pending-alerts");
+  if (!res.ok) throw new Error("Failed to fetch pending alerts");
+  return res.json();
+};

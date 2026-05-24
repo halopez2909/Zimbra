@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { getSellers, createSeller, getSellerReport, getAlertRate, getFollowupSummary } from '../api/api';
+import { getSellers, createSeller, getSellerReport, getAlertRate, getFollowupSummary, fetchSellerRanking } from '../api/api';
 
 export default function SellersPage() {
   const [sellers, setSellers] = useState<any[]>([]);
+  const [ranking, setRanking] = useState<any[]>([]);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [form, setForm] = useState({ full_name: '', email: '', phone: '' });
@@ -12,10 +13,14 @@ export default function SellersPage() {
   const [selected, setSelected] = useState<any | null>(null);
 
   const load = async () => {
-    try { setSellers(await getSellers(true)); } catch { setError('Failed to load sellers'); }
+    try { setSellers(await getSellers()); } catch { setError('Failed to load sellers'); }
   };
 
-  useEffect(() => { load(); }, []);
+  const loadRanking = async () => {
+    try { setRanking(await fetchSellerRanking()); } catch { /* ranking is optional */ }
+  };
+
+  useEffect(() => { load(); loadRanking(); }, []);
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
@@ -25,6 +30,7 @@ export default function SellersPage() {
       setSuccess('Seller created successfully');
       setForm({ full_name: '', email: '', phone: '' });
       load();
+      loadRanking();
     } catch (err: any) { setError(err.message); }
   };
 
@@ -43,10 +49,12 @@ export default function SellersPage() {
     } catch (err: any) { setError(err.message); }
   };
 
+  const rateColor = (rate: number) => (rate > 70 ? '#1E8449' : rate >= 40 ? '#C9A227' : '#C0504D');
+
   return (
     <div style={{ padding: '24px' }}>
       <h1 style={{ color: '#1F3864', marginBottom: '4px' }}>Sellers</h1>
-      <p style={{ color: '#666', marginBottom: '24px' }}>Sales team management and performance report (HU-01)</p>
+      <p style={{ color: '#666', marginBottom: '24px' }}>Sales team management, performance report and ranking (HU-01/06)</p>
 
       {error && <div style={{ background: '#FCE4D6', color: '#922B21', padding: '10px', borderRadius: '6px', marginBottom: '16px' }}>{error}</div>}
       {success && <div style={{ background: '#E2EFDA', color: '#1E8449', padding: '10px', borderRadius: '6px', marginBottom: '16px' }}>{success}</div>}
@@ -95,6 +103,23 @@ export default function SellersPage() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* HT-S4-11: Seller ranking by attention rate (vw_seller_performance) */}
+      <div style={{ background: '#fff', border: '1px solid #ddd', borderRadius: '8px', padding: '20px', marginBottom: '32px' }}>
+        <h3 style={{ marginTop: 0, color: '#1F3864' }}>Seller Ranking by Attention Rate ({ranking.length})</h3>
+        {ranking.length === 0 && <p style={{ color: '#888', fontSize: '14px' }}>No ranking data yet.</p>}
+        {ranking.map((s, i) => (
+          <div key={s.seller_id} style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
+            <span style={{ width: '24px', fontWeight: 'bold', color: '#1F3864', textAlign: 'right' }}>{i + 1}</span>
+            <span style={{ width: '160px', fontSize: '14px', color: '#333' }}>{s.full_name}</span>
+            <div style={{ flex: 1, background: '#EEE', borderRadius: '6px', height: '22px', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ width: Math.max(s.attention_rate, 2) + '%', background: rateColor(s.attention_rate), height: '100%', borderRadius: '6px', transition: 'width .3s' }} />
+              <span style={{ position: 'absolute', right: '8px', top: '2px', fontSize: '12px', color: '#333', fontWeight: 'bold' }}>{s.attention_rate}%</span>
+            </div>
+            <span style={{ width: '120px', fontSize: '12px', color: '#777', textAlign: 'right' }}>{s.attended_alerts}/{s.total_alerts} alerts</span>
+          </div>
+        ))}
       </div>
 
       <div style={{ background: '#fff', border: '1px solid #ddd', borderRadius: '8px', padding: '20px' }}>
