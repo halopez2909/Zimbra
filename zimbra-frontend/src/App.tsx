@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, NavLink } from "react-router-dom";
 import ProductsPage from "./pages/ProductsPage";
+import DashboardPage from "./pages/DashboardPage";
 import InteractionsPage from "./pages/InteractionsPage";
 import ProposalsPage from "./pages/ProposalsPage";
 import ClientsPage from "./pages/ClientsPage";
@@ -24,6 +25,7 @@ export default function App() {
 
           <p style={{ color: "#7788AA", fontSize: "10px", margin: "0 0 6px 4px", textTransform: "uppercase" }}>Andres - HU-03/05/08/09</p>
           <nav style={{ display: "flex", flexDirection: "column", gap: "4px", marginBottom: "16px" }}>
+            <NavLink to="/dashboard" style={({ isActive }) => ({ ...navStyle, ...(isActive ? activeStyle : {}) })}>📊 Dashboard</NavLink>
             <NavLink to="/products" style={({ isActive }) => ({ ...navStyle, ...(isActive ? activeStyle : {}) })}>📦 Products</NavLink>
             <NavLink to="/interactions" style={({ isActive }) => ({ ...navStyle, ...(isActive ? activeStyle : {}) })}>🔗 Interactions</NavLink>
             <NavLink to="/proposals" style={({ isActive }) => ({ ...navStyle, ...(isActive ? activeStyle : {}) })}>📋 Proposals</NavLink>
@@ -58,6 +60,7 @@ export default function App() {
                 <p style={{ color: "#888", fontSize: "14px" }}>Select a module from the sidebar to get started.</p>
               </div>
             } />
+            <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/interactions" element={<InteractionsPage />} />
             <Route path="/proposals" element={<ProposalsPage />} />

@@ -9,7 +9,7 @@ import models.proposal, models.sale, models.report
 from routers import products, interactions, proposals, sales
 from routers import clients, campaigns
 from routers import sellers, alerts, followups
-from routers import reports
+from routers import reports, views
 
 Base.metadata.create_all(bind=engine)
 
@@ -21,7 +21,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5174"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -37,6 +37,7 @@ app.include_router(sellers.router)
 app.include_router(alerts.router)
 app.include_router(followups.router)
 app.include_router(reports.router)
+app.include_router(views.router)
 
 @app.get("/")
 def root():
