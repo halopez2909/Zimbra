@@ -92,11 +92,9 @@ WHERE schemaname = 'public'
 AND tablename IN ('marketing_interactions', 'sales_proposals')
 ORDER BY tablename, indexname;
 
--- =====================================================
--- ALEJA - HT-S4-05: Views for performance reports
+-- ==============================================-- ALEJA - HT-S4-05: Views for performance reports
 -- HU-10 - Consolidated reporting
--- =====================================================
-
+-- ==============================================
 -- View: consolidated performance summary by period
 CREATE OR REPLACE VIEW vw_performance_summary AS
 SELECT
@@ -130,11 +128,9 @@ LEFT JOIN marketing_interactions mi ON mi.campaign_id = mc.campaign_id
 GROUP BY mc.campaign_id, mc.campaign_name, mc.campaign_type, mc.status, mc.budget
 ORDER BY conversion_rate DESC NULLS LAST;
 
--- =====================================================
--- ALEJA - HT-S4-06: Roles and permissions
+-- ==============================================-- ALEJA - HT-S4-06: Roles and permissions
 -- HU-02/04 - Security and access control
--- =====================================================
-
+-- ==============================================
 DROP ROLE IF EXISTS zimbra_admin;
 CREATE ROLE zimbra_admin WITH LOGIN PASSWORD 'admin2026';
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO zimbra_admin;
@@ -154,11 +150,9 @@ GRANT SELECT ON vw_campaign_effectiveness TO zimbra_viewer;
 GRANT SELECT ON vw_sales_pipeline TO zimbra_viewer;
 GRANT SELECT ON vw_sales_traceability TO zimbra_viewer;
 
--- =====================================================
--- ALEJA - HT-S4-07: Indexes for clients and campaigns
+-- ==============================================-- ALEJA - HT-S4-07: Indexes for clients and campaigns
 -- HU-02/04 - Performance optimization
--- =====================================================
-
+-- ==============================================
 CREATE INDEX IF NOT EXISTS idx_clients_type ON clients(client_type);
 CREATE INDEX IF NOT EXISTS idx_clients_seller ON clients(assigned_seller_id);
 CREATE INDEX IF NOT EXISTS idx_clients_email ON clients(email);
@@ -181,3 +175,63 @@ SELECT rolname, rolcanlogin
 FROM pg_roles
 WHERE rolname LIKE 'zimbra_%'
 ORDER BY rolname;
+-- Views, Indexes and Roles
+-- ==============================================================-- Developer: Jenn Olaya - HT-S4-09 (views) and HT-S4-10 (indexes) - HU-06/07
+-- ==============================================================
+-- HT-S4-09  View: seller performance summary
+-- One row per seller with alerts, attended alerts, follow-ups and attention rate.
+-- Used by GET /views/sellers and the SellersPage ranking.
+
+CREATE OR REPLACE VIEW vw_seller_performance AS
+SELECT
+    s.seller_id,
+    s.full_name,
+    COUNT(DISTINCT sa.alert_id) AS total_alerts,
+    COUNT(DISTINCT CASE WHEN sa.status IN ('attended', 'escalated') THEN sa.alert_id END) AS attended_alerts,
+    COUNT(DISTINCT fu.followup_id) AS total_followups,
+    COALESCE(ROUND(
+        COUNT(DISTINCT CASE WHEN sa.status IN ('attended', 'escalated') THEN sa.alert_id END) * 100.0
+        / NULLIF(COUNT(DISTINCT sa.alert_id), 0), 2
+    ), 0.00) AS attention_rate
+FROM sellers s
+LEFT JOIN sales_alerts sa ON sa.seller_id = s.seller_id
+LEFT JOIN follow_ups fu ON fu.seller_id = s.seller_id
+GROUP BY s.seller_id, s.full_name;
+
+-- HT-S4-09  View: pending alerts ordered by age (oldest first)
+-- Joins seller and client names. Used by GET /views/pending-alerts and AlertsPage.
+
+CREATE OR REPLACE VIEW vw_pending_alerts AS
+SELECT
+    sa.alert_id,
+    sa.interaction_id,
+    sa.seller_id,
+    sa.alert_date,
+    sa.alert_type,
+    sa.status,
+    s.full_name AS seller_name,
+    c.full_name AS client_name
+FROM sales_alerts sa
+JOIN sellers s ON s.seller_id = sa.seller_id
+JOIN marketing_interactions mi ON mi.interaction_id = sa.interaction_id
+JOIN clients c ON c.client_id = mi.client_id
+WHERE sa.status = 'pending'
+ORDER BY sa.alert_date ASC;
+
+-- HT-S4-10  Indexes to optimize the most frequent lookups
+-- Alerts: by seller (GET /alerts/seller/{id}), by status, by date (escalation/ordering).
+-- Follow-ups: by client (GET /followups/client/{id}) and by seller (reports).
+
+CREATE INDEX IF NOT EXISTS idx_alerts_seller    ON sales_alerts(seller_id);
+CREATE INDEX IF NOT EXISTS idx_alerts_status     ON sales_alerts(status);
+CREATE INDEX IF NOT EXISTS idx_alerts_date       ON sales_alerts(alert_date);
+CREATE INDEX IF NOT EXISTS idx_followups_client  ON follow_ups(client_id);
+CREATE INDEX IF NOT EXISTS idx_followups_seller  ON follow_ups(seller_id);
+
+-- verify objects created
+SELECT table_name FROM information_schema.views
+WHERE table_schema = 'public' AND table_name IN ('vw_seller_performance', 'vw_pending_alerts');
+
+SELECT indexname, tablename FROM pg_indexes
+WHERE schemaname = 'public' AND indexname LIKE 'idx_%'
+ORDER BY tablename, indexname;

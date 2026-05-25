@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends
+﻿f = open('zimbra-backend/routers/views.py', 'w', encoding='utf-8')
+f.write('''from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from database import get_db
@@ -83,10 +84,13 @@ def get_sellers_view(db: Session = Depends(get_db)):
         {
             "seller_id": row[0],
             "seller_name": row[1],
-            "total_alerts": row[2],
-            "attended_alerts": row[3],
-            "total_followups": row[4],
-            "attention_rate": float(row[5]) if row[5] else 0.0
+            "email": row[2],
+            "active": row[3],
+            "total_alerts": row[4],
+            "attended_alerts": row[5],
+            "total_followups": row[6],
+            "managed_clients": row[7],
+            "attention_rate": float(row[8]) if row[8] else 0.0
         }
         for row in rows
     ]
@@ -107,3 +111,6 @@ def get_pending_alerts_view(db: Session = Depends(get_db)):
         }
         for row in rows
     ]
+''')
+f.close()
+print('OK views.py')

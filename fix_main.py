@@ -1,4 +1,5 @@
-from fastapi import FastAPI
+﻿f = open('zimbra-backend/main.py', 'w', encoding='utf-8')
+f.write('''from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import engine, Base
 
@@ -42,3 +43,6 @@ app.include_router(views.router)
 @app.get("/")
 def root():
     return {"message": "Zimbra API running", "docs": "/docs"}
+''')
+f.close()
+print('OK main.py')
