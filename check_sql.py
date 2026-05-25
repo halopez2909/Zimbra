@@ -1,5 +1,0 @@
-﻿f = open('sql/05_views_indexes_roles.sql', 'r', encoding='utf-8')
-content = f.read()
-f.close()
-print('CONFLICT' if '<<<<<<' in content else 'NO CONFLICT')
-print('lines:', len(content.split('\n')))
